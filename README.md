@@ -1,296 +1,505 @@
-# 🏦 CredAI: Federated Multi-Agent Private Credit System
+# CredAI — Federated Multi-Agent Private Credit System
 
-[![Python Version](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue.svg)](https://www.python.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.115.0-009688.svg?style=flat&logo=FastAPI&logoColor=white)](https://fastapi.tiangolo.com/)
-[![Streamlit](https://img.shields.io/badge/Streamlit-1.39.1-FF4B4B.svg?style=flat&logo=Streamlit&logoColor=white)](https://streamlit.io/)
-[![Linter](https://img.shields.io/badge/code%20style-ruff-black.svg)](https://github.com/astral-sh/ruff)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.12-blue.svg)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115.0-009688.svg?style=flat\&logo=FastAPI\&logoColor=white)](https://fastapi.tiangolo.com/)
+[![Streamlit](https://img.shields.io/badge/Streamlit-1.39.1-FF4B4B.svg?style=flat\&logo=Streamlit\&logoColor=white)](https://streamlit.io/)
+[![Ruff](https://img.shields.io/badge/Code%20Style-Ruff-black.svg)](https://github.com/astral-sh/ruff)
 
-CredAI is a decentralized, multi-agent credit evaluation and loan origination platform designed specifically for private credit markets. By leveraging **FastAPI** microservices, **LangGraph** workflow orchestration, and **Sarvam AI** reasoning models, the system federates borrower onboarding, loan term structuring, risk ratio validation, and semantic search retrieval-augmented generation (RAG) into a secure, modular, and accessible platform.
+An AI-powered private credit platform where specialized agents collaborate to onboard borrowers, structure loans, analyze credit risk, and generate explainable credit insights.
 
----
+## What is CredAI?
+
+CredAI is a **federated multi-agent AI system for private credit workflows**.
+
+Instead of using a single AI model to handle the entire process, CredAI separates the workflow into specialized agents for:
+
+* Borrower onboarding
+* Loan structuring
+* Credit intelligence
+* Workflow orchestration
+
+A central **LangGraph-based orchestration layer** coordinates these agents through independent **FastAPI services**.
+
+The system combines **deterministic financial validation**, **LLM-powered reasoning**, and **RAG-based retrieval** to produce structured and plain-English credit assessments.
+
+## The Problem
+
+Private credit evaluation involves multiple connected steps — collecting borrower information, validating financial constraints, structuring loan terms, assessing risk, and reviewing relevant information.
+
+Building this as one large AI workflow can make the system harder to maintain, validate, and extend.
+
+CredAI explores a different approach: **breaking the workflow into specialized agents while keeping critical financial rules deterministic and auditable.**
+
+## What the System Does
+
+* 👤 Onboards and validates borrower information
+* 💰 Structures loan terms and calculates DSR/LTV
+* 🧠 Performs AI-assisted credit and sector analysis
+* 🔎 Retrieves relevant information using RAG
+* 🤝 Coordinates specialized agents through LangGraph
+* 📄 Generates plain-English credit committee reports
+* 📊 Provides an interactive Streamlit dashboard
+* 🔐 Uses internal API authentication between services
+* 📝 Maintains audit events for credit intelligence workflows
 
 ## 📸 Dashboard Preview
 
-<p align="center">
-  <img src="docs/assets/dashboard_home.png" alt="CredAI Dashboard Screenshot" width="900"/>
-</p>
+*CredAI Streamlit dashboard for borrower onboarding, loan structuring, credit analysis, and RAG-based querying.*
 
-<p align="center"><em>CredAI — Streamlit-powered multi-agent private credit dashboard with RAG query panel</em></p>
+![CredAI Dashboard](docs/assets/dashboard_home.png)
+
+
+
+## 🏗️ Architecture
+
+CredAI follows a **federated multi-agent architecture** where each agent is independently exposed as a FastAPI service.
+
+```mermaid
+flowchart LR
+
+    UI[Streamlit Dashboard<br/>Port 8501]
+
+    C[Concierge Agent<br/>LangGraph Orchestrator<br/>Port 8000]
+
+    B[Borrower Agent<br/>Port 8001]
+
+    L[Loan Agent<br/>Port 8002]
+
+    CI[Credit Intelligence Agent<br/>Port 8003]
+
+    DB[(SQL Database)]
+    VDB[(ChromaDB<br/>Vector Store)]
+    LLM[Sarvam AI<br/>Reasoning Model]
+
+    UI --> C
+
+    C --> B
+    C --> L
+    C --> CI
+
+    B --> DB
+    L --> DB
+    CI --> DB
+
+    CI --> LLM
+    CI --> VDB
+
+    VDB --> CI
+    CI --> C
+    C --> UI
+```
+
+### Core Components
+
+#### 1. Streamlit Dashboard — Port 8501
+
+The frontend provides:
+
+* Borrower onboarding
+* Loan application and structuring
+* Credit report visualization
+* Financial ratio displays
+* RAG query interface
+* Database-backed borrower quick loading
+
+#### 2. Concierge Agent — Port 8000
+
+The orchestration layer coordinates the complete workflow using **LangGraph**.
+
+Responsibilities include:
+
+* Gathering workflow inputs
+* Calling the appropriate peer agents
+* Managing the multi-step workflow
+* Collecting agent responses
+* Generating the final credit committee report
+
+#### 3. Borrower Agent — Port 8001
+
+Responsible for borrower profile management.
+
+Key responsibilities:
+
+* Borrower onboarding
+* Profile persistence
+* Income validation
+* Duplicate-safe/idempotent onboarding
+* Borrower retrieval
+
+#### 4. Loan Agent — Port 8002
+
+Responsible for loan structuring and financial validation.
+
+It calculates:
+
+* Debt-Service Ratio (DSR)
+* Loan-to-Value (LTV)
+* Loan repayment metrics
+
+It also enforces configured financial safety limits before the application proceeds.
+
+#### 5. Credit Intelligence Agent — Port 8003
+
+Responsible for credit intelligence and AI-assisted analysis.
+
+It:
+
+* Computes risk scores and default probabilities
+* Generates sector-level insights using Sarvam AI
+* Stores audit events
+* Creates searchable credit summaries
+* Indexes information in ChromaDB
+* Supports semantic RAG queries
+
+## ✨ Key Features
+
+### 1. Multi-Agent Workflow Orchestration
+
+CredAI separates responsibilities across specialized agents instead of placing the entire workflow inside one AI component.
+
+```text
+User
+  ↓
+Streamlit Dashboard
+  ↓
+Concierge Agent
+  ↓
+┌──────────────┬──────────────┬─────────────────────┐
+│              │              │                     │
+▼              ▼              ▼                     │
+Borrower      Loan      Credit Intelligence         │
+Agent         Agent           Agent                 │
+│              │              │                     │
+└──────────────┴──────────────┴─────────────────────┘
+                       ↓
+              Credit Committee Report
+```
+
+This makes individual services easier to develop, test, and extend independently.
+
+### 2. Deterministic Financial Validation
+
+Critical financial constraints are handled through explicit business rules rather than relying on the LLM.
+
+Current validation rules include:
+
+| Rule                  |    Limit |
+| --------------------- | -------: |
+| Minimum annual income |  $50,000 |
+| Minimum loan amount   | $100,000 |
+| Maximum DSR           |      45% |
+| Maximum LTV           |      75% |
+
+DSR:
+
+```text
+DSR = (Monthly Payment × 12) / Annual Income
+```
+
+LTV:
+
+```text
+LTV = Loan Amount / Collateral Value
+```
+
+### 3. AI-Assisted Credit Intelligence
+
+The Credit Intelligence Agent combines:
+
+* Structured financial information
+* Rule-based validation
+* Sarvam AI reasoning
+* Sector analysis
+* Retrieval-augmented generation
+
+The goal is to use the LLM for **reasoning and explanation**, while keeping important financial constraints deterministic.
+
+### 4. RAG-Based Credit Search
+
+Credit summaries are indexed into **ChromaDB** and can be queried semantically.
+
+This allows users to ask natural-language questions such as:
+
+```text
+Manufacturing sector risk profiles with good collateral
+```
+
+The system retrieves relevant indexed information rather than relying only on the LLM's internal knowledge.
+
+### 5. Plain-English Credit Reports
+
+CredAI generates credit committee reports designed to explain financial metrics in understandable language.
+
+The report can explain:
+
+* Loan terms
+* DSR
+* LTV
+* Risk factors
+* Sector insights
+* Retrieved market information
+
+### 6. Database Quick-Load
+
+Previously onboarded borrowers can be loaded from the database after a browser refresh or session reset.
+
+This avoids forcing users to repeat the onboarding process during development and testing.
+
+### 7. Audit Logging
+
+The Credit Intelligence Agent maintains SQL-based audit events for important processing steps, providing additional traceability around the credit intelligence workflow.
+
+
+## 🛠️ Tech Stack
+
+| Layer               | Technologies                   |
+| ------------------- | ------------------------------ |
+| Language            | Python                         |
+| Backend             | FastAPI, Uvicorn               |
+| Agent Orchestration | LangGraph                      |
+| LLM                 | Sarvam AI                      |
+| RAG                 | ChromaDB, embeddings           |
+| Frontend            | Streamlit                      |
+| Database            | SQLite / SQL-based persistence |
+| API Communication   | REST                           |
+| Validation          | Python business rules          |
+| Testing             | Pytest                         |
+| Code Quality        | Ruff                           |
+| Configuration       | Environment variables          |
+
+## 📁 Project Structure
+
+```text
+CredAI/
+│
+├── src/
+│   ├── agents/
+│   │   ├── concierge_agent/
+│   │   ├── borrower_agent/
+│   │   ├── loan_agent/
+│   │   └── credit_intelligence_agent/
+│   │
+│   └── frontend/
+│       └── app.py
+│
+├── tests/
+├── docs/
+│   └── assets/
+│       └── dashboard_home.png
+│
+├── requirements.txt
+├── pyproject.toml
+├── docker-compose.yml
+├── LICENSE
+└── README.md
+```
 
 ---
 
-## 🏗️ Architecture & Orchestration
+# 🚀 Getting Started
 
-The platform is structured as a collection of four decoupled, autonomous microservice peer agents and a responsive light-beige Streamlit frontend dashboard.
+## Prerequisites
 
-```mermaid
-graph TD
-    UI[Streamlit Dashboard :8501] -->|HTTP + API Key| Concierge[Concierge Agent :8000]
-    
-    subgraph Federated Agent Stack
-        Concierge -->|1. Onboard| Borrower[Borrower Agent :8001]
-        Concierge -->|2. Structure| Loan[Loan Agent :8002]
-        Concierge -->|3. Evaluate| Credit[Credit Intel Agent :8003]
-    end
-    
-    subgraph Data & Vector Layer
-        Borrower -->|SQL| BorrowerDB[(borrower.db)]
-        Loan -->|SQL| LoanDB[(loan.db)]
-        Credit -->|SQL| CreditDB[(credit_intel.db)]
-        Credit -->|Vector Search| ChromaDB[(ChromaDB RAG)]
-    end
-    
-    subgraph Intelligence Layer
-        Concierge -->|Generate Memo| Sarvam[Sarvam AI LLM]
-        Credit -->|Sector Insights| Sarvam
-    end
-```
+Make sure you have:
 
-### Core Components:
+* Python 3.11 or 3.12
+* Git
+* An active internet connection
+* A Sarvam AI API key
 
-1. **Streamlit Dashboard (Port 8501)**: A premium, mobile-friendly dashboard. Enforces high-contrast color ratios, dynamic forms, loan structuring calculators, and interactive RAG query panels.
-2. **Concierge Agent (Orchestrator - Port 8000)**: Coordinates the federated loan workflow using **LangGraph**. Gathers details, triggers the processing pipeline across peer agents, and queries the LLM for a final credit committee report.
-3. **Borrower Agent (Port 8001)**: Manages borrower profile persistence. Enforces private credit minimum income thresholds ($50,000) and includes idempotent onboarding logic to handle duplicate profile pings.
-4. **Loan Agent (Port 8002)**: Structures loan terms and calculates credit metrics like Debt-Service Ratio (DSR) and Loan-to-Value (LTV). Enforces strict safety envelopes.
-5. **Credit Intelligence Agent (Port 8003)**: Computes risk scoring (0-100) and default probabilities. Uses Sarvam AI's reasoning model to generate localized sector insights, maintains SQL audit event logs, and indexes summaries into a persistent **ChromaDB** store using offline embeddings (`all-MiniLM-L6-v2`) for semantic querying.
-
-## ✨ Key Features & Business Rules
-
-### ⚙️ Strict Private Credit Validation Envelopes
-To protect lenders and ensure sustainable repayment, the system automatically checks and enforces three key safety rules:
-* **Minimum Income Threshold:** Borrowers must have an annual income of **$50,000** or more to onboard.
-* **Minimum Loan Size:** The system only processes loans of **$100,000** or more (typical in private credit markets).
-* **Maximum Debt-Service Ratio (DSR):** Monthly payments must not exceed **45%** of the borrower's monthly income (`monthly_payment * 12 / annual_income <= 0.45`).
-* **Maximum Loan-to-Value (LTV):** The loan amount must not exceed **75%** of the collateral value (`loan_amount / collateral_value <= 0.75`).
-
-### ⚡ Database Quick-Load Integration (Refresh Resilience)
-If you refresh the browser page or clear the session state, you **never** have to restart from scratch:
-* **Onboarding Page:** Contains a drop-down list of all previously onboarded borrowers. Click any name to instantly load their profile!
-* **Loan Structuring Page:** If your session is empty, selecting any existing borrower from the database dropdown will immediately unlock the structuring page.
-
-### 📝 Plain-English Credit Committee Memos
-To ensure credit decisions are transparent to borrowers and branch staff alike, the AI avoids heavy banking jargon and explicitly explains financial acronyms (like DSR and LTV) in supportive, friendly, and practical plain English.
-
-
-## 🚀 Getting Started
-
-### 📋 Prerequisites
-* **Python 3.11** or **Python 3.12** installed on your system.
-* A standard terminal shell (PowerShell or Cmd on Windows, Terminal on macOS/Linux).
-* An active internet connection (to download sentence embeddings during initial setup and connect to the LLM).
-
-### 🛠️ 1. Clone & Set Up Virtual Environment
-
-Open your terminal and run the following commands:
+## 1. Clone the Repository
 
 ```bash
-# Clone the repository
-git clone https://github.com/your-username/Multi_Agent_Private_Credit_card_System.git
-cd Multi_Agent_Private_Credit_card_System
+git clone https://github.com/Soujuhegde/CredAI---Private-Credit-Platform-.git
+cd CredAI---Private-Credit-Platform-
+```
 
-# Create a fresh, Windows-compatible virtual environment
+## 2. Create a Virtual Environment
+
+### Windows PowerShell
+
+```powershell
 python -m venv .venv
-
-# Activate the virtual environment
-# On Windows PowerShell:
 .venv\Scripts\Activate.ps1
-# On Windows Command Prompt:
-.venv\Scripts\activate.bat
-# On Git Bash / macOS / Linux:
-source .venv/Scripts/activate
+```
 
-# Install all package dependencies
+If PowerShell blocks script execution:
+
+```powershell
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process
+```
+
+Then activate the environment again.
+
+### Windows Command Prompt
+
+```cmd
+python -m venv .venv
+.venv\Scripts\activate.bat
+```
+
+### macOS / Linux
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+```
+
+## 3. Install Dependencies
+
+```bash
 pip install -r requirements.txt
 ```
 
-### 🔑 2. Configure Environment Variables
-Create a file named `.env` in the root directory and populate it with your API keys and service configurations:
+# 🔑 Environment Configuration
+
+Create a `.env` file in the project root.
 
 ```env
-# Sarvam AI LLM API Key (OpenAI-compatible client)
-SARVAM_API_KEY=your-sarvam-api-key-here
+# Sarvam AI
+SARVAM_API_KEY=your-sarvam-api-key
 LLM_MODEL=sarvam-m
 LLM_BASE_URL=https://api.sarvam.ai/v1
 
-# Security API key for inter-agent validation
-INTERNAL_API_KEY=secret-internal-key
+# Internal service authentication
+INTERNAL_API_KEY=your-internal-api-key
 
-# Service URLs
+# Agent service URLs
 BORROWER_AGENT_URL=http://localhost:8001
 LOAN_AGENT_URL=http://localhost:8002
 CREDIT_AGENT_URL=http://localhost:8003
 
-# Embedding Configuration
+# Embeddings / Vector Store
 EMBED_MODEL=text-embedding-3-small
 CHROMA_PATH=./chroma_db
+
+# Logging
 LOG_LEVEL=INFO
 ```
 
-## 🏃 Usage & Run Guide
+# 🏃 Running the Application
 
-To run the entire federated agent stack locally, open **five separate terminal windows** (ensure the `.venv` virtual environment is activated in each) and launch the components in the following order:
+CredAI currently runs as four backend services plus the Streamlit frontend.
 
-### 1. Start the Backend Agent Stack
+Open **five terminal windows** and activate the virtual environment in each.
 
-* **Concierge Orchestrator (Port 8000)**:
-  ```powershell
-  uvicorn src.agents.concierge_agent.main:app --port 8000 --reload
-  ```
-* **Borrower Onboarding Agent (Port 8001)**:
-  ```powershell
-  uvicorn src.agents.borrower_agent.main:app --port 8001 --reload
-  ```
-* **Loan Structuring Agent (Port 8002)**:
-  ```powershell
-  uvicorn src.agents.loan_agent.main:app --port 8002 --reload
-  ```
-* **Credit Intelligence Agent (Port 8003)**:
-  ```powershell
-  uvicorn src.agents.credit_intelligence_agent.main:app --port 8003 --reload
-  ```
+## 1. Start the Concierge Agent
 
-### 2. Launch the Streamlit Frontend
-
-* **Streamlit Dashboard (Port 8501)**:
-  ```powershell
-  streamlit run src/frontend/app.py
-  ```
-The dashboard will open automatically in your browser at `http://localhost:8501`.
-
-## 📖 Step-by-Step Walkthrough Example
-
-Follow this quick guide to run a complete evaluation cycle:
-
-### 👤 Step 1: Onboard a Borrower
-1. Go to the **Borrower Onboarding** page in the dashboard.
-2. Enter the following parameters:
-   * **Full Name:** `Chirag`
-   * **Email:** `chiragjain03@gmail.com`
-   * **Annual Income ($):** `75000` *(Must be at least $50,000)*
-   * **Credit Score:** `698`
-   * **Employment Status:** `employed`
-   * **Company Name:** `Arihant Industries`
-3. Click **Submit & Save Onboarding**. Under the hood, the **Borrower Agent** validates the income and saves the profile to `borrower.db`, generating a unique **Borrower ID** (e.g. `BRW-2666ACF7`).
-
-### 📄 Step 2: Structure the Loan
-1. Navigate to the **Loan Application** page.
-2. Paste the **Borrower ID** generated in Step 1.
-3. Enter the loan parameters:
-   * **Loan Amount ($):** `100000` *(Must be at least $100,000)*
-   * **Loan Term (Months):** `60` *(Recommended to keep DSR under 45%)*
-   * **Collateral Type:** `Real Estate`
-   * **Collateral Value ($):** `300000` *(LTV = 33.3%, well below the 75% limit)*
-   * **Purpose:** `Working Capital`
-4. Click **Submit Application for Orchestrator Evaluation**. The **Loan Agent** will calculate the ratios, verify safety limits, and return a **Loan ID** (e.g. `LN-CF16548A`).
-
-### 📊 Step 3: View the Plain-English Memo
-1. Click the **View Credit Memo / Report** button to go to the report page.
-2. The page displays a premium styled report showing:
-   * **Credit Memo Overview:** An encouraging 3-paragraph plain-English summary detailing the deal terms, explaining LTV/DSR ratios using friendly analogies, and giving a clear final recommendation.
-   * **Risk & Market Analysis:** Banners displaying identified risk factors (e.g. manufacturing sector cost headwinds) and RAG-retrieved market insights.
-   * **Interactive RAG Query Panel:** Allows bank staff to search the database semantically. Try querying: `"Manufacturing sector risk profiles with good collateral"`.
-
-## ⚡ API / Endpoints List
-
-### 🏨 1. Concierge Agent (Orchestrator - Port 8000)
-* `POST /process` - Main endpoint. Orchestrates the full LangGraph workflow.
-* `GET /agents` - A2A discovery endpoint. Lists all active peer agent cards.
-* `GET /query?q=<query>` - Proxies semantic RAG queries to the Credit Intelligence Agent.
-
-### 👤 2. Borrower Onboarding Agent (Port 8001)
-* `POST /borrowers` - Onboards and saves a new borrower.
-* `GET /borrowers/{id}` - Retrieves a borrower's profile.
-
-### 📄 3. Loan Structuring Agent (Port 8002)
-* `POST /loans` - Validates and structures a loan term sheet.
-* `GET /loans/{id}` - Retrieves structured loan metrics.
-
-### 🧠 4. Credit Intelligence Agent (Port 8003)
-* `POST /intelligence` - Computes risk scores and default probabilities, generates sector insights, and indexes records in ChromaDB.
-* `GET /intelligence/query?q=<query>` - Queries the ChromaDB vector store.
-
-
-## 🧪 Development, Testing & Code Style
-
-### 📏 Code Style Guidelines
-This project enforces clean code practices using **Ruff**.
-* **Configuration:** Standard rules defined in `pyproject.toml`.
-* **Line Length Limit:** 100 characters.
-* **Imports:** Ordered alphabetically and grouped cleanly.
-* **Docstrings:** Required for all public API routes and handlers.
-
-To check and auto-format your code style:
 ```bash
-# Lint the code using Ruff
+uvicorn src.agents.concierge_agent.main:app --port 8000 --reload
+```
+
+## 2. Start the Borrower Agent
+
+```bash
+uvicorn src.agents.borrower_agent.main:app --port 8001 --reload
+```
+
+## 3. Start the Loan Agent
+
+```bash
+uvicorn src.agents.loan_agent.main:app --port 8002 --reload
+```
+
+## 4. Start the Credit Intelligence Agent
+
+```bash
+uvicorn src.agents.credit_intelligence_agent.main:app --port 8003 --reload
+```
+
+## 5. Start the Streamlit Dashboard
+
+```bash
+streamlit run src/frontend/app.py
+```
+
+Open:
+
+```text
+http://localhost:8501
+```
+
+---
+
+# ⚡ API Reference
+
+## Concierge Agent — Port 8000
+
+| Method | Endpoint           | Purpose                        |
+| ------ | ------------------ | ------------------------------ |
+| `POST` | `/process`         | Orchestrates the full workflow |
+| `GET`  | `/agents`          | Discovers active peer agents   |
+| `GET`  | `/query?q=<query>` | Proxies semantic RAG queries   |
+
+## Borrower Agent — Port 8001
+
+| Method | Endpoint          | Purpose                   |
+| ------ | ----------------- | ------------------------- |
+| `POST` | `/borrowers`      | Create a borrower profile |
+| `GET`  | `/borrowers/{id}` | Retrieve a borrower       |
+
+## Loan Agent — Port 8002
+
+| Method | Endpoint      | Purpose                          |
+| ------ | ------------- | -------------------------------- |
+| `POST` | `/loans`      | Validate and structure a loan    |
+| `GET`  | `/loans/{id}` | Retrieve structured loan metrics |
+
+## Credit Intelligence Agent — Port 8003
+
+| Method | Endpoint                        | Purpose                         |
+| ------ | ------------------------------- | ------------------------------- |
+| `POST` | `/intelligence`                 | Generate credit intelligence    |
+| `GET`  | `/intelligence/query?q=<query>` | Query the ChromaDB vector store |
+
+
+# 🤝 Contributing
+
+Contributions are welcome.
+
+1. Fork the repository.
+2. Create a feature branch:
+
+```bash
+git checkout -b feature/AmazingFeature
+```
+
+3. Make your changes.
+4. Run the test suite:
+
+```bash
+pytest
+```
+
+5. Run Ruff:
+
+```bash
 ruff check src/
-
-# Auto-fix code style issues
-ruff check src/ --fix
 ```
 
-### 🧪 Running Tests
-Automated test suites are managed via `pytest`.
+6. Commit your changes:
+
 ```bash
-# Run all unit tests
-.venv\Scripts\pytest
-
-# Run tests with output printing enabled
-.venv\Scripts\pytest -s
+git commit -m "Add some AmazingFeature"
 ```
 
-*Note: If live integration tests are written in the future, they can be selected using the `@pytest.mark.integration` marker.*
+7. Push the branch:
 
-
-## 🛠️ Troubleshooting & FAQ
-
-#### Q: I get `Script Execution Policy` error when running `.venv\Scripts\Activate.ps1` in PowerShell?
-**A:** Windows restricts scripts by default. You can bypass this restriction for your current PowerShell window by running:
-```powershell
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process
-```
-Then rerun the activation command.
-
-#### Q: Uvicorn throws `ModuleNotFoundError: No module named 'openai'` or `'streamlit'`?
-**A:** This happens if you accidentally start the server using your global python installation instead of your virtual environment. Always make sure `(.venv)` is visible at the beginning of your terminal prompt before running servers!
-
-#### Q: I see `Port already in use` error when starting a service?
-**A:** A previously crashed or lingering server might still be listening. You can run the following PowerShell command in Windows to forcefully shut down all five development ports:
-```powershell
-@(8000, 8001, 8002, 8003, 8501) | ForEach-Object {
-    $port = $_
-    $pidToKill = (Get-NetTCPConnection -LocalPort $port -ErrorAction SilentlyContinue).OwningProcess | Unique
-    if ($pidToKill) {
-        $pidToKill | ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue; Write-Output "Stopped process $_ listening on port $port" }
-    }
-}
+```bash
+git push origin feature/AmazingFeature
 ```
 
-## 📈 Roadmap & Phased Enhancement Plan
+8. Open a Pull Request.
 
-* [x] **Phase 1: Local Development & Windows Compatibility** (Complete)
-  * Clean up legacy macOS system folders (`__MACOSX`).
-  * Rebuild Windows-native virtual environments.
-  * Resolve dependency version mismatches.
-* [x] **Phase 2: Plain-English Reasoning & Quick-Load UI Integrations** (Complete)
-  * Enforce plain-English LLM prompt limits.
-  * Embed LTV/DSR user-friendly descriptions.
-  * Implement browser refresh resilience via SQLite DB quick-load fields.
-* [ ] **Phase 3: Production Deployment & Docker Containerization** (In Progress)
-  * Stabilize `docker-compose.yml` configs.
-  * Switch databases from development SQLite to production-ready PostgreSQL (`psycopg2-binary`).
-  * Implement persistent volume mapping for ChromaDB indexing.
+# 👤 Author
+
+**Soujanya S P**
+
+AI Engineer | Generative AI | Agentic AI
+
+* GitHub: [@Soujuhegde](https://github.com/Soujuhegde)
+* LinkedIn: [Soujanya S P](https://www.linkedin.com/in/soujanyasp02)
+* Project: [CredAI — Private Credit Platform](https://github.com/Soujuhegde/CredAI---Private-Credit-Platform-)
 
 
-### Contributing Guidelines
-1. Fork the project repository and create your feature branch (`git checkout -b feature/AmazingFeature`).
-2. Verify that your edits comply with Ruff styling: `ruff check src/`.
-3. Commit your changes using a clear descriptive message (`git commit -m 'Add some AmazingFeature'`).
-4. Push to the branch (`git push origin feature/AmazingFeature`) and submit a Pull Request.
-
-### Code of Conduct
-Please be polite, collaborative, and inclusive. Refer to standard professional developer codes of conduct.
-
-## 👥 Authors & Contact
-* **Soujanya S P** - Lead System Architect & Orchestration Engineer (`spsoujanya02@gmail.com`)
-* **Project Link:** [https://github.com/Soujuhegde/CredAI---Private-Credit-Platform-](https://github.com/Soujuhegde/CredAI---Private-Credit-Platform-)
+The project focuses not only on generating AI responses, but on engineering the workflow around them — **specialized agents, service boundaries, validation, retrieval, orchestration, persistence, and explainable outputs.**
