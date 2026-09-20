@@ -310,7 +310,7 @@ Make sure you have:
 ## 1. Clone the Repository
 
 ```bash
-git clone https://github.com/Soujuhegde/CredAI---Private-Credit-Platform-.git
+git clone https://github.com/Soujuhegde/Cred-AI-Private-Credit-Platfrom.git
 cd CredAI---Private-Credit-Platform-
 ```
 
@@ -499,7 +499,7 @@ AI Engineer | Generative AI | Agentic AI
 
 * GitHub: [@Soujuhegde](https://github.com/Soujuhegde)
 * LinkedIn: [Soujanya S P](https://www.linkedin.com/in/soujanyasp02)
-* Project: [CredAI — Private Credit Platform](https://github.com/Soujuhegde/CredAI---Private-Credit-Platform-)
+* Project: [CredAI — Private Credit Platform](https://github.com/Soujuhegde/Cred-AI-Private-Credit-Platfrom.git)
 
 
 The project focuses not only on generating AI responses, but on engineering the workflow around them — **specialized agents, service boundaries, validation, retrieval, orchestration, persistence, and explainable outputs.**
